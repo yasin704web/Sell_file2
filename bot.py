@@ -14,8 +14,8 @@ from telegram.ext import (
 
 
 TOKEN = os.getenv("TOKEN")
-
 MERCHANT = os.getenv("MERCHANT")
+
 CALLBACK_URL = "https://my-telegram-bot-se9i.onrender.com/verify"
 
 
@@ -26,7 +26,7 @@ app_flask = Flask(__name__)
 
 @app_flask.route("/")
 def home():
-    return "Bot is running"
+    return "Smartix Bot is running ✅"
 
 
 @app_flask.route("/verify", methods=["GET", "POST"])
@@ -36,20 +36,30 @@ def verify():
 
 
 
-# ---------- Telegram Bot ----------
+# ---------- Telegram ----------
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
-        [InlineKeyboardButton("📞 پشتیبانی", callback_data="support")],
-        [InlineKeyboardButton("📂 فروش فایل 1", callback_data="file")]
+        [
+            InlineKeyboardButton(
+                "📞 پشتیبانی",
+                callback_data="support"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📂 فروش فایل 1",
+                callback_data="file"
+            )
+        ]
     ]
 
     await update.message.reply_text(
         "سلام 👋\n\n"
         "من ربات Smartix هستم 🤖\n"
         "یک ربات هوشمند که به شما کمک می‌کنم.\n\n"
-        "یکی از گزینه‌ها را انتخاب کنید 👇",
+        "انتخاب کنید 👇",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
@@ -75,37 +85,55 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "callback_uri": CALLBACK_URL
         }
 
-        response = requests.post(
-            "https://nextpay.org/nx/gateway/token",
-            json=data
-        )
 
-        result = response.json()
+        try:
 
-        if result.get("trans_id"):
-
-            pay_url = (
-                "https://nextpay.org/nx/gateway/payment/"
-                + result["trans_id"]
+            response = requests.post(
+                "https://nextpay.org/nx/gateway/token",
+                json=data,
+                timeout=20
             )
 
-            keyboard = [
-                [
-                    InlineKeyboardButton(
-                        "💳 پرداخت",
-                        url=pay_url
-                    )
+            result = response.json()
+
+
+            if result.get("trans_id"):
+
+                pay_url = (
+                    "https://nextpay.org/nx/gateway/payment/"
+                    + result["trans_id"]
+                )
+
+
+                keyboard = [
+                    [
+                        InlineKeyboardButton(
+                            "💳 پرداخت",
+                            url=pay_url
+                        )
+                    ]
                 ]
-            ]
+
+
+                await query.edit_message_text(
+                    "برای خرید فایل روی پرداخت بزنید 👇",
+                    reply_markup=InlineKeyboardMarkup(keyboard)
+                )
+
+
+            else:
+
+                await query.edit_message_text(
+                    "❌ خطا در ساخت پرداخت"
+                )
+
+
+        except Exception as e:
+
+            print(e)
 
             await query.edit_message_text(
-                "برای خرید فایل روی پرداخت بزنید 👇",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-
-        else:
-            await query.edit_message_text(
-                "❌ خطا در ساخت پرداخت"
+                "❌ خطای ارتباط با درگاه"
             )
 
 
@@ -130,9 +158,11 @@ def run_bot():
 
 def run_web():
 
+    port = int(os.environ.get("PORT", 10000))
+
     app_flask.run(
         host="0.0.0.0",
-        port=10000
+        port=port
     )
 
 
@@ -140,7 +170,8 @@ def run_web():
 if __name__ == "__main__":
 
     threading.Thread(
-        target=run_bot
+        target=run_web
     ).start()
 
-    run_web()
+
+    run_bot()
