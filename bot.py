@@ -1,19 +1,20 @@
 import os
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
-    Updater,
+    Application,
     CommandHandler,
     CallbackQueryHandler,
-    CallbackContext
+    ContextTypes
 )
+
 
 TOKEN = os.getenv("TOKEN")
 
 
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    buttons = [
+    keyboard = [
         [
             InlineKeyboardButton(
                 "📞 پشتیبانی",
@@ -28,55 +29,53 @@ def start(update: Update, context: CallbackContext):
         ]
     ]
 
-    keyboard = InlineKeyboardMarkup(buttons)
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "سلام 👋\n\n"
         "من ربات Smartix هستم 🤖\n"
         "یک ربات هوشمند که به شما کمک می‌کنم.\n\n"
-        "لطفاً یکی از گزینه‌ها را انتخاب کنید 👇",
-        reply_markup=keyboard
+        "یکی از گزینه‌ها را انتخاب کنید 👇",
+        reply_markup=reply_markup
     )
 
 
-def button(update: Update, context: CallbackContext):
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
-    query.answer()
+    await query.answer()
 
     if query.data == "support":
-        query.edit_message_text(
+
+        await query.edit_message_text(
             "📞 پشتیبانی:\n\n"
             "@FF_Ranked0011"
         )
 
+
     elif query.data == "file":
-        query.edit_message_text(
+
+        await query.edit_message_text(
             "📂 فروش فایل 1\n\n"
-            "به زودی فعال می‌شود 🚀"
+            "این بخش به زودی فعال می‌شود 🚀"
         )
 
 
 def main():
 
-    updater = Updater(
-        TOKEN,
-        use_context=True
-    )
+    app = Application.builder().token(TOKEN).build()
 
-    updater.dispatcher.add_handler(
+    app.add_handler(
         CommandHandler("start", start)
     )
 
-    updater.dispatcher.add_handler(
-        CallbackQueryHandler(button)
+    app.add_handler(
+        CallbackQueryHandler(button_handler)
     )
 
-    updater.start_polling()
+    print("Smartix Started ✅")
 
-    print("Smartix is running...")
-
-    updater.idle()
+    app.run_polling()
 
 
 if __name__ == "__main__":
