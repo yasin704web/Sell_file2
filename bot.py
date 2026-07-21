@@ -1,56 +1,83 @@
 import os
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    CallbackQueryHandler,
+    CallbackContext
+)
 
 TOKEN = os.getenv("TOKEN")
 
-# ----------- START -----------
+
 def start(update: Update, context: CallbackContext):
-    keyboard = [
-        [InlineKeyboardButton("📞 پشتیبانی", callback_data="support")],
-        [InlineKeyboardButton("📂 فروش فایل 1", callback_data="file1")]
+
+    buttons = [
+        [
+            InlineKeyboardButton(
+                "📞 پشتیبانی",
+                callback_data="support"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📂 فروش فایل 1",
+                callback_data="file"
+            )
+        ]
     ]
 
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    keyboard = InlineKeyboardMarkup(buttons)
 
     update.message.reply_text(
-        "سلام 👋\n"
+        "سلام 👋\n\n"
         "من ربات Smartix هستم 🤖\n"
-        "یک ربات هوشمند که بهتون کمک می‌کنم\n\n"
-        "یکی از گزینه‌ها رو انتخاب کن 👇",
-        reply_markup=reply_markup
+        "یک ربات هوشمند که به شما کمک می‌کنم.\n\n"
+        "لطفاً یکی از گزینه‌ها را انتخاب کنید 👇",
+        reply_markup=keyboard
     )
 
-# ----------- BUTTON HANDLER -----------
+
 def button(update: Update, context: CallbackContext):
+
     query = update.callback_query
     query.answer()
 
     if query.data == "support":
         query.edit_message_text(
-            "📞 پشتیبانی:\n"
+            "📞 پشتیبانی:\n\n"
             "@FF_Ranked0011"
         )
 
-    elif query.data == "file1":
+    elif query.data == "file":
         query.edit_message_text(
-            "📂 فایل شماره 1\n\n"
-            "💰 قیمت: 50 هزار تومان\n\n"
-            "برای خرید:\n"
-            "1. مبلغ رو کارت به کارت کن\n"
-            "2. رسید رو ارسال کن"
+            "📂 فروش فایل 1\n\n"
+            "به زودی فعال می‌شود 🚀"
         )
 
-# ----------- MAIN -----------
-def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
 
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CallbackQueryHandler(button))
+def main():
+
+    updater = Updater(
+        TOKEN,
+        use_context=True
+    )
+
+    updater.dispatcher.add_handler(
+        CommandHandler("start", start)
+    )
+
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(button)
+    )
 
     updater.start_polling()
+
+    print("Smartix is running...")
+
     updater.idle()
+
 
 if __name__ == "__main__":
     main()
